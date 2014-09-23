@@ -39,7 +39,7 @@
 %%%   Command: set | add | replace
 %%%   Key: term()
 %%%   Data: term()
-%%%   Flags: int()>=0
+%%%   Flags: int()>=0te
 %%%   Expiration: int()>=0
 %%%   Value: int()>=0
 %%%   Time: int()>=0
@@ -641,7 +641,7 @@ do_forwarder(Method, ServerRef, Req) ->
 		% into to an Erlang term. It's better to do it in the requester
 		% process space to avoid inter-process copying of potentially
 		% complex data structures.
-		{ok, {'$value_blob', B}} -> {ok, binary_to_term(B)};
+		{ok, {'$value_blob', B}} -> {ok, B};
 
 		Response -> Response
 	catch
@@ -713,7 +713,7 @@ constructMemcachedQueryCmd(Cmd, Key, Data) ->
 constructMemcachedQueryCmd(Cmd, Key, Data, Flags, Exptime)
 	when is_list(Cmd), is_integer(Flags), is_integer(Exptime),
 	Flags >= 0, Flags < 65536, Exptime >= 0 ->
-	BinData = term_to_binary(Data),
+	BinData = Data,
 	MD5Key = md5(Key),
 	{MD5Key, [Cmd, " ", b64(MD5Key), " ", integer_to_list(Flags), " ",
 		integer_to_list(Exptime), " ",
@@ -769,7 +769,7 @@ data_receiver_accept_response(rtGet, ExpFlags, Socket) ->
 		ok = inet:setopts(Socket, [{packet, line}]),
 		case proplists:get_value(raw_blob, ExpFlags) of
 			true -> {ok, {'$value_blob', Bin}};
-			_ -> {ok, binary_to_term(Bin)}
+			_ -> {ok, Bin}
 		end
 	end;
 data_receiver_accept_response(rtInt, _, Socket) ->
